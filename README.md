@@ -1,5 +1,5 @@
 # local-screenshot-parser
-Simple Django / Vue app to parse text from screenshots locally
+Simple Django / Ugly Vue app to parse text from screenshots locally
 
 Easily parse and search through text from screenshots.
 

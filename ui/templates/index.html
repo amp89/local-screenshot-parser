@@ -1,0 +1,183 @@
+<html>
+
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/axios@0.20.0/dist/axios.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+
+        <title>Screenshot Parser</title>
+
+    </head>
+
+
+    <body>
+
+    <div id="screenshotParser" class="container">
+
+        <h1 class="text-center">Local Screenshot Parser</h1>
+
+
+        <div id="screenshotBasePath">
+            <div class="row">
+                <div class="col col-sm-12 col-md-6">
+                    <input style="width:70%;" v-model="basePath" placeholder="Base path of screenshots" v-on:keyup.enter="search()"> <button v-on:click="search()"  class="btn btn-primary">Search</button>
+                </div>
+                <div class="col col-sm-12 col-md-6">
+                    <input style="width:70%;" v-model="filterText" placeholder="Start typing to filter"> <button v-on:click="clearFilter()"  class="btn btn-primary">Clear Filter</button>
+                </div>
+            </div>
+        </div>
+
+        
+        <div id="errorMessage">
+            [[errorMessage]]
+        </div>
+
+
+        <div id="screenshotResults">
+            <div v-if="loading">
+                LOADING! This may take serveral minutes if there are a ton of photos. Please do not refresh the page.
+            
+            </div>
+            
+            <div v-else>
+                    <div v-if="displayedScreenshots.length">
+                        <table class="table table-striped">
+                            <thead>
+                                <th>Path (Click to copy)</th>
+                                <th>Text</th>
+                            </thead>
+
+                            <tbody>
+                                <tr v-for="screenshot in displayedScreenshots">
+                                    <td v-on:click="copyPath(screenshot.id)">[[screenshot.path]]</td>
+                                    <td>[[screenshot.text]]</td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                    <div v-else>
+                        No screenshots to show!
+                    </div>
+            </div>
+        </div>
+
+    
+
+    </div>
+
+
+    <script>
+        
+    axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+    axios.defaults.xsrfCookieName = "csrftoken";
+
+
+    const screenshotUrl = "{% url 'screenshots' %}"
+    const basePathUrl = "{% url 'base_path' %}"
+
+    const screenshotParser = new Vue({
+        delimiters: ["[[", "]]"], // So it will work with django (templates use double {})
+        el: "#screenshotParser",
+        data: {
+            basePath: "",
+            screenshots: [],
+            errorMessage: "",
+            loading: false,
+            filterText: "",
+            
+        },
+        methods: {
+            loadResults: function(){
+                this.loading = true
+                axios.get(screenshotUrl).then(
+                    r => {
+                        this.screenshots = r.data
+                        this.loading = false
+                    }
+                ).catch(
+                    e => {
+                            console.error("Error: " + e)
+                            this.errorMessage = "Please refresh!"
+                            this.loading = false
+                        }
+                )
+            },
+            loadBasePath: function(){
+                axios.get(basePathUrl).then(
+                    r => {
+                        this.basePath = r.data
+                    }
+                ).catch(
+                    e => {
+                            console.error("Error: " + e)
+                            
+                        }
+                )
+            },
+            
+            search: function(){
+                if(confirm("This will clear results and start over again, searching path \"" + this.basePath + "\". This may take some time. Are you sure you want to continue?")){
+                    this.loading = true
+                    errorMessage = ''
+                    axios.post(screenshotUrl, {"path":this.basePath}).then(
+                        r => {                        
+                            this.loadResults()
+                        }
+                    ).catch(
+                        e => {
+                                console.error("Error: " + e)
+                                this.errorMessage = "Error loading screenshot data. Please refresh!"
+                                this.loading = true
+                            }
+                    )    
+                }
+                
+            },
+            clearFilter: function(){
+                this.filterText = ""
+            },
+            copyPath: function(linkId){
+                var textArea = document.createElement("textarea");
+                textArea.value = this.screenshots.filter(e => e.id == linkId)[0].path
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+                this.copiedId = linkId
+            },
+            
+
+        },
+        computed: {
+            displayedScreenshots: function(){
+                //return something for aThing to be
+                if (this.filterText){
+                    return this.screenshots.filter(n => n.text.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1)
+                }else{
+                    return this.screenshots
+                }
+            }
+
+        },
+        mounted:function(){
+            //do this when mounted
+            this.loadBasePath()
+            this.loadResults()
+            
+        }
+
+    })
+
+    </script>
+
+
+    </body>
+
+
+</html>

@@ -14,7 +14,7 @@ Easily parse and search through text from screenshots.
 ## How to setup:
 
 1. Clone
-2. Install requrements from `requirements.txt`. You must have tesseract installed on your system for this to work. See https://pypi.org/project/pytesseract/ for details
+2. Install requrements from `requirements.txt`. **You must have tesseract installed on your system for this to work.** See https://pypi.org/project/pytesseract/ for details
 3. run `python manage.py migrate` to create your database
 4. Make note of the **full** path of the directory where your screenshots are located. It will look through directories recursively, but it is best if it has only images in it.
 

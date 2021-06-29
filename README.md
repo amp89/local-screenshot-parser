@@ -3,6 +3,9 @@ Simple Django / Vue app to parse text from screenshots locally
 
 Easily parse and search through text from screenshots.
 
+![image](https://user-images.githubusercontent.com/16569440/123744849-9acb1480-d86c-11eb-9009-5ddd58c92422.png)
+
+
 # NOTE: THIS IS ONLY DESIGNED TO BE RAN LOCALLY ON LOCALHOST!
 
 ## Features
